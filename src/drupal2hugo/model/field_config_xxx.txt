@@ -1,0 +1,68 @@
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_config`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_config` (
+`id` int(11) NOT NULL COMMENT 'The primary identifier for a field',
+  `field_name` varchar(32) NOT NULL COMMENT 'The name of this field. Non-deleted field names are unique, but multiple deleted fields can have the same name.',
+  `type` varchar(128) NOT NULL COMMENT 'The type of this field.',
+  `module` varchar(128) NOT NULL DEFAULT '' COMMENT 'The module that implements the field type.',
+  `active` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the module that implements the field type is enabled.',
+  `storage_type` varchar(128) NOT NULL COMMENT 'The storage backend for the field.',
+  `storage_module` varchar(128) NOT NULL DEFAULT '' COMMENT 'The module that implements the storage backend.',
+  `storage_active` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the module that implements the storage backend is enabled.',
+  `locked` tinyint(4) NOT NULL DEFAULT '0' COMMENT '@TODO',
+  `data` longblob NOT NULL COMMENT 'Serialized data containing the field properties that do not warrant a dedicated column.',
+  `cardinality` tinyint(4) NOT NULL DEFAULT '0',
+  `translatable` tinyint(4) NOT NULL DEFAULT '0',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_config_instance`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_config_instance` (
+`id` int(11) NOT NULL COMMENT 'The primary identifier for a field instance',
+  `field_id` int(11) NOT NULL COMMENT 'The identifier of the field attached by this instance',
+  `field_name` varchar(32) NOT NULL DEFAULT '',
+  `entity_type` varchar(32) NOT NULL DEFAULT '',
+  `bundle` varchar(128) NOT NULL DEFAULT '',
+  `data` longblob NOT NULL,
+  `deleted` tinyint(4) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `drp_field_config`
+--
+ALTER TABLE `drp_field_config`
+ ADD PRIMARY KEY (`id`), ADD KEY `field_name` (`field_name`), ADD KEY `active` (`active`), ADD KEY `storage_active` (`storage_active`), ADD KEY `deleted` (`deleted`), ADD KEY `module` (`module`), ADD KEY `storage_module` (`storage_module`), ADD KEY `type` (`type`), ADD KEY `storage_type` (`storage_type`);
+
+--
+-- Indexes for table `drp_field_config_instance`
+--
+ALTER TABLE `drp_field_config_instance`
+ ADD PRIMARY KEY (`id`), ADD KEY `field_name_bundle` (`field_name`,`entity_type`,`bundle`), ADD KEY `deleted` (`deleted`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `drp_field_config`
+--
+ALTER TABLE `drp_field_config`
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The primary identifier for a field',AUTO_INCREMENT=7;
+--
+-- AUTO_INCREMENT for table `drp_field_config_instance`
+--
+ALTER TABLE `drp_field_config_instance`
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The primary identifier for a field instance',AUTO_INCREMENT=18;

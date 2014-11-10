@@ -1,0 +1,175 @@
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_body`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_body` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `body_value` longtext,
+  `body_summary` longtext,
+  `body_format` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 2 (body)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_comment_body`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_comment_body` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `comment_body_value` longtext,
+  `comment_body_format` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 1 (comment_body)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_field_attachment`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_field_attachment` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `field_attachment_fid` int(10) unsigned DEFAULT NULL COMMENT 'The drp_file_managed.fid being referenced in this field.',
+  `field_attachment_display` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT 'Flag to control whether this file should be displayed when viewing content.',
+  `field_attachment_description` text COMMENT 'A description of the file.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 6 (field_attachment)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_field_image`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_field_image` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `field_image_fid` int(10) unsigned DEFAULT NULL COMMENT 'The drp_file_managed.fid being referenced in this field.',
+  `field_image_alt` varchar(512) DEFAULT NULL,
+  `field_image_title` varchar(1024) DEFAULT NULL,
+  `field_image_width` int(10) unsigned DEFAULT NULL COMMENT 'The width of the image in pixels.',
+  `field_image_height` int(10) unsigned DEFAULT NULL COMMENT 'The height of the image in pixels.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 4 (field_image)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_field_related`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_field_related` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `field_related_value` longtext,
+  `field_related_format` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 7 (field_related)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_field_summary`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_field_summary` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `field_summary_value` longtext,
+  `field_summary_format` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 5 (field_summary)';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_field_data_field_tags`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_field_data_field_tags` (
+  `entity_type` varchar(128) NOT NULL DEFAULT '' COMMENT 'The entity type this data is attached to',
+  `bundle` varchar(128) NOT NULL DEFAULT '' COMMENT 'The field instance bundle to which this row belongs, used when deleting a field instance',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this data item has been deleted',
+  `entity_id` int(10) unsigned NOT NULL COMMENT 'The entity id this data is attached to',
+  `revision_id` int(10) unsigned DEFAULT NULL COMMENT 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
+  `language` varchar(32) NOT NULL DEFAULT '' COMMENT 'The language for this data item.',
+  `delta` int(10) unsigned NOT NULL COMMENT 'The sequence number for this data item, used for multi-value fields',
+  `field_tags_tid` int(10) unsigned DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Data storage for field 3 (field_tags)';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `drp_field_data_body`
+--
+ALTER TABLE `drp_field_data_body`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `body_format` (`body_format`);
+
+--
+-- Indexes for table `drp_field_data_comment_body`
+--
+ALTER TABLE `drp_field_data_comment_body`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `comment_body_format` (`comment_body_format`);
+
+--
+-- Indexes for table `drp_field_data_field_attachment`
+--
+ALTER TABLE `drp_field_data_field_attachment`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `field_attachment_fid` (`field_attachment_fid`);
+
+--
+-- Indexes for table `drp_field_data_field_image`
+--
+ALTER TABLE `drp_field_data_field_image`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `field_image_fid` (`field_image_fid`);
+
+--
+-- Indexes for table `drp_field_data_field_related`
+--
+ALTER TABLE `drp_field_data_field_related`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `field_related_format` (`field_related_format`);
+
+--
+-- Indexes for table `drp_field_data_field_summary`
+--
+ALTER TABLE `drp_field_data_field_summary`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `field_summary_format` (`field_summary_format`);
+
+--
+-- Indexes for table `drp_field_data_field_tags`
+--
+ALTER TABLE `drp_field_data_field_tags`
+ ADD PRIMARY KEY (`entity_type`,`entity_id`,`deleted`,`delta`,`language`), ADD KEY `entity_type` (`entity_type`), ADD KEY `bundle` (`bundle`), ADD KEY `deleted` (`deleted`), ADD KEY `entity_id` (`entity_id`), ADD KEY `revision_id` (`revision_id`), ADD KEY `language` (`language`), ADD KEY `field_tags_tid` (`field_tags_tid`);

@@ -1,0 +1,97 @@
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_taxonomy_index`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_taxonomy_index` (
+  `nid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The drp_node.nid this record tracks.',
+  `tid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The term ID.',
+  `sticky` tinyint(4) DEFAULT '0' COMMENT 'Boolean indicating whether the node is sticky.',
+  `created` int(11) NOT NULL DEFAULT '0' COMMENT 'The Unix timestamp when the node was created.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Maintains denormalized information about node/term...';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_taxonomy_term_data`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_taxonomy_term_data` (
+`tid` int(10) unsigned NOT NULL COMMENT 'Primary Key: Unique term ID.',
+  `vid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The drp_taxonomy_vocabulary.vid of the vocabulary to which the term is assigned.',
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'The term name.',
+  `description` longtext COMMENT 'A description of the term.',
+  `format` varchar(255) DEFAULT NULL COMMENT 'The drp_filter_format.format of the description.',
+  `weight` int(11) NOT NULL DEFAULT '0' COMMENT 'The weight of this term in relation to other terms.'
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8 COMMENT='Stores term information.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_taxonomy_term_hierarchy`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_taxonomy_term_hierarchy` (
+  `tid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Primary Key: The drp_taxonomy_term_data.tid of the term.',
+  `parent` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Primary Key: The drp_taxonomy_term_data.tid of the term’s parent. 0 indicates no parent.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores the hierarchical relationship between terms.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_taxonomy_vocabulary`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_taxonomy_vocabulary` (
+`vid` int(10) unsigned NOT NULL COMMENT 'Primary Key: Unique vocabulary ID.',
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'Name of the vocabulary.',
+  `machine_name` varchar(255) NOT NULL DEFAULT '' COMMENT 'The vocabulary machine name.',
+  `description` longtext COMMENT 'Description of the vocabulary.',
+  `hierarchy` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'The type of hierarchy allowed within the vocabulary. (0 = disabled, 1 = single, 2 = multiple)',
+  `module` varchar(255) NOT NULL DEFAULT '' COMMENT 'The module which created the vocabulary.',
+  `weight` int(11) NOT NULL DEFAULT '0' COMMENT 'The weight of this vocabulary in relation to other vocabularies.'
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='Stores vocabulary information.';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `drp_taxonomy_index`
+--
+ALTER TABLE `drp_taxonomy_index`
+ ADD KEY `term_node` (`tid`,`sticky`,`created`), ADD KEY `nid` (`nid`);
+
+--
+-- Indexes for table `drp_taxonomy_term_data`
+--
+ALTER TABLE `drp_taxonomy_term_data`
+ ADD PRIMARY KEY (`tid`), ADD KEY `taxonomy_tree` (`vid`,`weight`,`name`), ADD KEY `vid_name` (`vid`,`name`), ADD KEY `name` (`name`);
+
+--
+-- Indexes for table `drp_taxonomy_term_hierarchy`
+--
+ALTER TABLE `drp_taxonomy_term_hierarchy`
+ ADD PRIMARY KEY (`tid`,`parent`), ADD KEY `parent` (`parent`);
+
+--
+-- Indexes for table `drp_taxonomy_vocabulary`
+--
+ALTER TABLE `drp_taxonomy_vocabulary`
+ ADD PRIMARY KEY (`vid`), ADD UNIQUE KEY `machine_name` (`machine_name`), ADD KEY `list` (`weight`,`name`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `drp_taxonomy_term_data`
+--
+ALTER TABLE `drp_taxonomy_term_data`
+MODIFY `tid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key: Unique term ID.',AUTO_INCREMENT=67;
+--
+-- AUTO_INCREMENT for table `drp_taxonomy_vocabulary`
+--
+ALTER TABLE `drp_taxonomy_vocabulary`
+MODIFY `vid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key: Unique vocabulary ID.',AUTO_INCREMENT=2;

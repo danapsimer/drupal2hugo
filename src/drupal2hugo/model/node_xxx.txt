@@ -1,0 +1,100 @@
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_node`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_node` (
+`nid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for a node.',
+  `vid` int(10) unsigned DEFAULT NULL COMMENT 'The current drp_node_revision.vid version identifier.',
+  `type` varchar(32) NOT NULL DEFAULT '' COMMENT 'The drp_node_type.type of this node.',
+  `language` varchar(12) NOT NULL DEFAULT '' COMMENT 'The drp_languages.language of this node.',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'The title of this node, always treated as non-markup plain text.',
+  `uid` int(11) NOT NULL DEFAULT '0' COMMENT 'The drp_users.uid that owns this node; initially, this is the user that created it.',
+  `status` int(11) NOT NULL DEFAULT '1' COMMENT 'Boolean indicating whether the node is published (visible to non-administrators).',
+  `created` int(11) NOT NULL DEFAULT '0' COMMENT 'The Unix timestamp when the node was created.',
+  `changed` int(11) NOT NULL DEFAULT '0' COMMENT 'The Unix timestamp when the node was most recently saved.',
+  `comment` int(11) NOT NULL DEFAULT '0' COMMENT 'Whether comments are allowed on this node: 0 = no, 1 = closed (read only), 2 = open (read/write).',
+  `promote` int(11) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the node should be displayed on the front page.',
+  `sticky` int(11) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the node should be displayed at the top of lists in which it appears.',
+  `tnid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The translation set id for this node, which equals the node id of the source post in each set.',
+  `translate` int(11) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this translation page needs to be updated.'
+) ENGINE=InnoDB AUTO_INCREMENT=99 DEFAULT CHARSET=utf8 COMMENT='The base table for nodes.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_node_revision`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_node_revision` (
+  `nid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The drp_node this version belongs to.',
+`vid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for this version.',
+  `uid` int(11) NOT NULL DEFAULT '0' COMMENT 'The drp_users.uid that created this version.',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'The title of this version.',
+  `log` longtext NOT NULL COMMENT 'The log entry explaining the changes in this version.',
+  `timestamp` int(11) NOT NULL DEFAULT '0' COMMENT 'A Unix timestamp indicating when this version was created.',
+  `status` int(11) NOT NULL DEFAULT '1' COMMENT 'Boolean indicating whether the node (at the time of this revision) is published (visible to non-administrators).',
+  `comment` int(11) NOT NULL DEFAULT '0' COMMENT 'Whether comments are allowed on this node (at the time of this revision): 0 = no, 1 = closed (read only), 2 = open (read/write).',
+  `promote` int(11) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the node (at the time of this revision) should be displayed on the front page.',
+  `sticky` int(11) NOT NULL DEFAULT '0' COMMENT 'Boolean indicating whether the node (at the time of this revision) should be displayed at the top of lists in which it appears.'
+) ENGINE=InnoDB AUTO_INCREMENT=425 DEFAULT CHARSET=utf8 COMMENT='Stores information about each saved version of a drp_node.';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_node_type`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_node_type` (
+  `type` varchar(32) NOT NULL COMMENT 'The machine-readable name of this type.',
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'The human-readable name of this type.',
+  `base` varchar(255) NOT NULL COMMENT 'The base string used to construct callbacks corresponding to this node type.',
+  `module` varchar(255) NOT NULL COMMENT 'The module defining this node type.',
+  `description` mediumtext NOT NULL COMMENT 'A brief description of this type.',
+  `help` mediumtext NOT NULL COMMENT 'Help information shown to the user when creating a drp_node of this type.',
+  `has_title` tinyint(3) unsigned NOT NULL COMMENT 'Boolean indicating whether this type uses the drp_node.title field.',
+  `title_label` varchar(255) NOT NULL DEFAULT '' COMMENT 'The label displayed for the title field on the edit form.',
+  `custom` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this type is defined by a module (FALSE) or by a user via Add content type (TRUE).',
+  `modified` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether this type has been modified by an administrator; currently not used in any way.',
+  `locked` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether the administrator can change the machine name of this type.',
+  `disabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'A boolean indicating whether the node type is disabled.',
+  `orig_type` varchar(255) NOT NULL DEFAULT '' COMMENT 'The original machine-readable name of this node type. This may be different from the current type name if the locked field is 0.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores information about all defined drp_node types.';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `drp_node`
+--
+ALTER TABLE `drp_node`
+ ADD PRIMARY KEY (`nid`), ADD UNIQUE KEY `vid` (`vid`), ADD KEY `node_changed` (`changed`), ADD KEY `node_created` (`created`), ADD KEY `node_frontpage` (`promote`,`status`,`sticky`,`created`), ADD KEY `node_status_type` (`status`,`type`,`nid`), ADD KEY `node_title_type` (`title`,`type`(4)), ADD KEY `node_type` (`type`(4)), ADD KEY `uid` (`uid`), ADD KEY `tnid` (`tnid`), ADD KEY `translate` (`translate`), ADD KEY `language` (`language`);
+
+--
+-- Indexes for table `drp_node_revision`
+--
+ALTER TABLE `drp_node_revision`
+ ADD PRIMARY KEY (`vid`), ADD KEY `nid` (`nid`), ADD KEY `uid` (`uid`);
+
+--
+-- Indexes for table `drp_node_type`
+--
+ALTER TABLE `drp_node_type`
+ ADD PRIMARY KEY (`type`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `drp_node`
+--
+ALTER TABLE `drp_node`
+MODIFY `nid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The primary identifier for a node.',AUTO_INCREMENT=99;
+--
+-- AUTO_INCREMENT for table `drp_node_revision`
+--
+ALTER TABLE `drp_node_revision`
+MODIFY `vid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The primary identifier for this version.',AUTO_INCREMENT=425;
