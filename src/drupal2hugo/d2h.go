@@ -69,6 +69,11 @@ func main() {
 		*user = *db
 	}
 
+	if !util.FileExists("content") {
+		fmt.Fprintln(os.Stderr, "There is no content directory here. Did you mean to try somewhere else?")
+		os.Exit(1)
+	}
+
 	// username:password@protocol(address)/dbname?param=value
 	db := connect(*driver, *user+":"+*pass+"@/"+*db)
 
@@ -76,8 +81,12 @@ func main() {
 		fmt.Printf("%v\n", nt)
 	}
 
-	for _, node := range model.AllNodes(db, *prefix) {
-		fmt.Printf("%v\n", node)
+//	for _, node := range model.AllNodes(db, *prefix) {
+//		fmt.Printf("%v\n", node)
+//	}
+
+	for _, node := range model.JoinedNodeFields(db, *prefix) {
+		fmt.Printf("%+v\n", node)
 	}
 }
 
