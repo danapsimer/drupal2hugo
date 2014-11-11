@@ -5,7 +5,7 @@
 --
 
 CREATE TABLE IF NOT EXISTS `drp_node` (
-`nid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for a node.',
+  `nid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for a node.',
   `vid` int(10) unsigned DEFAULT NULL COMMENT 'The current drp_node_revision.vid version identifier.',
   `type` varchar(32) NOT NULL DEFAULT '' COMMENT 'The drp_node_type.type of this node.',
   `language` varchar(12) NOT NULL DEFAULT '' COMMENT 'The drp_languages.language of this node.',
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `drp_node` (
 
 CREATE TABLE IF NOT EXISTS `drp_node_revision` (
   `nid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The drp_node this version belongs to.',
-`vid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for this version.',
+  `vid` int(10) unsigned NOT NULL COMMENT 'The primary identifier for this version.',
   `uid` int(11) NOT NULL DEFAULT '0' COMMENT 'The drp_users.uid that created this version.',
   `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'The title of this version.',
   `log` longtext NOT NULL COMMENT 'The log entry explaining the changes in this version.',

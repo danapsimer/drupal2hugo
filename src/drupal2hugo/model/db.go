@@ -22,48 +22,57 @@
 // THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-package util
+package model
 
 import (
+	"github.com/rickb777/gorp"
+	"database/sql"
+	"drupal2hugo/util"
+	"errors"
 	"log"
-	"fmt"
 	"os"
 )
 
-func Stderr(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, args...)
+// see https://github.com/go-sql-driver/mysql#readme
+const parameters = ""
+
+type Database struct {
+	DbMap *gorp.DbMap
+	Prefix string
 }
 
-func Fatal(format string, args ...interface{}) {
-	Stderr(format, args...)
-	os.Exit(1)
+var traceLog = "-"
+
+func Connect(driver, connection, prefix string, verbose bool) Database {
+	db, err := sql.Open(driver, connection+parameters)
+	util.CheckErrFatal(err, "Opening", connection)
+	//db.SetMaxIdleConns(30)
+
+	database := &gorp.DbMap{Db: db, Dialect: chooseDialect(driver)}
+	controlTrace(verbose, database)
+	return Database{database, prefix}
 }
 
-func logMsgs(msg ...interface{}) {
-	if len(msg) > 0 {
-		fmt.Fprintln(os.Stderr, msg...)
+func chooseDialect(driver string) gorp.Dialect {
+	switch driver {
+	case "mysql": // already initialised
+		return gorp.MySQLDialect{"InnoDB", "UTF8"}
+	case "sqlite":
+		return gorp.SqliteDialect{}
+	case "postgres":
+		return gorp.PostgresDialect{}
+	default:
+		panic(errors.New(driver + ": unknown database driver."))
+	}
+	return nil
+}
+
+func controlTrace(trace bool, DbMap *gorp.DbMap) {
+	if trace {
+		dbTraceWriter := util.ConstructSomeLogWriter(traceLog, os.Stdout)
+		DbMap.TraceOn("", log.New(dbTraceWriter, "gorptest: ", log.Lmicroseconds))
+	} else {
+		DbMap.TraceOff()
 	}
 }
 
-func CheckErrFatal(err error, msg ...interface{}) {
-	if err != nil {
-		logMsgs(msg...)
-		Fatal(err.Error() + "\n")
-	}
-}
-
-func CheckErrPanic(err error, msg ...interface{}) {
-	if err != nil {
-		logMsgs(msg...)
-		log.Panicln(err)
-	}
-}
-
-func LogError(err error, msg ...interface{}) bool {
-	if err != nil {
-		logMsgs(msg...)
-		Stderr(err.Error() + "\n")
-		return true
-	}
-	return false
-}
