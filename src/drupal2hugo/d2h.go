@@ -32,9 +32,9 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"path"
-	"strings"
 	"bufio"
 	"io"
+	"time"
 )
 
 var db = flag.String("db", "", "Drupal database name")
@@ -86,47 +86,42 @@ func main() {
 }
 
 func processNode(node *model.JoinedNodeDataBody, alias string) {
-	dir, base := path.Split(alias)
+	fileName := fmt.Sprintf("content/%s.md", alias)
+	dir := path.Dir(fileName)
 	fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias ,node.Title, node.Published, node.Deleted)
-	var contentPath string
-	if strings.HasPrefix(dir, node.Type) {
-		contentPath = fmt.Sprintf("content/%s", dir)
-	} else {
-		contentPath = fmt.Sprintf("content/%s/%s", node.Type, dir)
-	}
-	fmt.Printf("mkdir %s\n", contentPath)
-	err := os.MkdirAll(contentPath, os.FileMode(0755))
-	util.CheckErrFatal(err, "mkdir", contentPath)
-	//			fmt.Printf("%+v\n", node)
-	fileName := fmt.Sprintf("%s/%s.md", contentPath, base)
+	fmt.Printf("mkdir %s\n", dir)
+
+	err := os.MkdirAll(dir, os.FileMode(0755))
+	util.CheckErrFatal(err, "mkdir", dir)
+
 	file, err := os.Create(fileName)
 	util.CheckErrFatal(err, "create", fileName)
+
 	w := bufio.NewWriter(file)
-	writeFile(w, node)
+	writeFile(w, node, alias)
 	w.Flush()
 	file.Close()
 }
 
-func writeFile(w *io.Writer, node *model.JoinedNodeDataBody) {
+func writeFile(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
+	created := time.Unix(node.Created, 0).Format("2006-01-02")
+	changed := time.Unix(node.Changed, 0).Format("2006-01-02")
+	fmt.Printf("%+v\n", node)
 	fmt.Fprintln(w, "---")
-	fmt.Fprintf(w, "title: \"%s\"\n", node.Title)
-	fmt.Fprintf(w, "type: \"%s\"\n", node.Type)
+	fmt.Fprintf(w, "title:   \"%s\"\n", node.Title)
 	fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
-	fmt.Fprintf(w, "#date: \"%d\"\n", node.Changed)
-	//fmt.Fprintf(w, "# \"%s\"\n", node.BodyFormat)
-	if !node.Published {
-		fmt.Fprintf(w, "draft: true\n")
+	fmt.Fprintf(w, "type:    %s\n", node.Type)
+	fmt.Fprintf(w, "date:    %s\n", created)
+	if changed != created {
+		fmt.Fprintf(w, "changed: %s\n", changed)
 	}
-	//	Created      int64
-	//	Changed      int64
-	//	Comment      int8
-	//	Promote      bool
-	//	Sticky       bool
-	//	Bundle       string
-	//	Deleted      bool
-	//	RevisionId   int32
-	//	Delta        int32
-	//	BodyFormat   string
+	fmt.Fprintf(w, "weight:  %d\n", node.Nid) // the node-id is normally ascending in Drupal and is always unique
+	fmt.Fprintf(w, "draft:   %v\n", !node.Published)
+	fmt.Fprintf(w, "promote: %v\n", node.Promote)
+	fmt.Fprintf(w, "sticky:  %v\n", node.Sticky)
+	fmt.Fprintf(w, "deleted: %v\n", node.Deleted)
+	fmt.Fprintf(w, "url:     %s\n", alias)
+	fmt.Fprintf(w, "aliases: [ node/%d ]\n", node.Nid)
 
 	fmt.Fprintln(w, "---")
 	fmt.Fprintln(w, node.BodyValue)
