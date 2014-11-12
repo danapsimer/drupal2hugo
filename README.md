@@ -3,3 +3,5 @@
 * This is experimental. YMMV.
 
 * MIT Licence.
+
+[![Build Status](https://drone.io/bitbucket.org/rickb777/drupal2hugo/status.png)](https://drone.io/bitbucket.org/rickb777/drupal2hugo/latest)
