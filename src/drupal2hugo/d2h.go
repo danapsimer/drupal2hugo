@@ -35,9 +35,10 @@ import (
 	"bufio"
 	"io"
 	"time"
+	"strings"
 )
 
-var db = flag.String("db", "", "Drupal database name - required")
+var dbName = flag.String("db", "", "Drupal database name - required")
 var driver = flag.String("driver", "mysql", "SQL driver")
 var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
@@ -52,20 +53,20 @@ var verbose = flag.Bool("v", false, "Verbose")
 
 func main() {
 	flag.Parse()
-	if *db == "" {
+	if *dbName == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
 
 	if *user == "" {
-		*user = *db
+		*user = *dbName
 	}
 
 	if *pass == "" {
-		var input []byte = make([]byte, 100);
-		n, err := os.Stdin.Read(input);
-		util.CheckErrFatal(err, sql)
-		fmt.Printf("%s", input);
+		fmt.Printf("Password: ")
+		os.Stdout.Sync()
+		_, err := fmt.Scanln(pass)
+		util.CheckErrFatal(err)
 	}
 
 	if !util.FileExists("content") {
@@ -73,20 +74,19 @@ func main() {
 		os.Exit(2)
 	}
 
-	os.Exit(0)
 	// username:password@protocol(address)/dbname?param=value
-	db := model.Connect(*driver, *user+":"+*pass+"@/"+*db, *prefix, *verbose)
+	db := model.Connect(*driver, *user+":"+*pass+"@/"+*dbName, *prefix, *verbose)
 
 	for _, nt := range db.AllNodeTypes() {
 		fmt.Printf("%v\n", nt)
 	}
+	processVocabs(db)
 
 	//	for _, node := range model.AllNodes(db, *prefix) {
 	//		fmt.Printf("%v\n", node)
 	//	}
 
 	offset := 0
-	fmt.Printf("Vocabularies: %+v\n", db.AllVocabularies())
 	nodes := db.JoinedNodeFields(offset, 10)
 	for len(nodes) > 0 {
 		for _, node := range nodes {
@@ -99,11 +99,23 @@ func main() {
 	fmt.Printf("Total %d nodes.\n", offset)
 }
 
+func processVocabs(db model.Database) {
+	vocabs := db.AllVocabularies()
+	fmt.Printf("Taxonomies:\n")
+	for _, v := range vocabs {
+		n := strings.ToLower(v.Name)
+		fmt.Printf("  %s: \"%s\"\n", toSingular(n), n)
+	}
+}
+
 func processNode(node *model.JoinedNodeDataBody, alias string) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
-	fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias, node.Title, node.Published, node.Deleted)
-	fmt.Printf("mkdir %s\n", dir)
+	if (*verbose) {
+		fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias, node.Title, node.Published, node.Deleted)
+		fmt.Printf("mkdir %s\n", dir)
+//		fmt.Printf("%+v\n", node)
+	}
 
 	err := os.MkdirAll(dir, os.FileMode(0755))
 	util.CheckErrFatal(err, "mkdir", dir)
@@ -120,7 +132,6 @@ func processNode(node *model.JoinedNodeDataBody, alias string) {
 func writeFile(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
 	created := time.Unix(node.Created, 0).Format("2006-01-02")
 	changed := time.Unix(node.Changed, 0).Format("2006-01-02")
-	fmt.Printf("%+v\n", node)
 	fmt.Fprintln(w, "---")
 	fmt.Fprintf(w, "title:   \"%s\"\n", node.Title)
 	fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
@@ -139,4 +150,14 @@ func writeFile(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
 
 	fmt.Fprintln(w, "---")
 	fmt.Fprintln(w, node.BodyValue)
+}
+
+func toSingular(plural string) string {
+	if strings.HasSuffix(plural, "ies") {
+		return string(plural[:len(plural)-3]) + "y"
+	}
+	if strings.HasSuffix(plural, "s") {
+		return string(plural[:len(plural)-1])
+	}
+	return plural
 }
