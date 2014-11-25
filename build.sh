@@ -2,6 +2,10 @@
 . ./env.sh
 VERSION=${1:-developer-$(date '+%Y%m%d%H%M%S')}
 
+if [ "$1" != "" ]; then
+    hg tag -f version-$1
+fi
+
 [ ! -d src/github.com ] && ./update.sh
 #[ ! -d src/mock ] && ./mocks.sh
 
