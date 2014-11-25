@@ -37,7 +37,7 @@ import (
 	"time"
 )
 
-var db = flag.String("db", "", "Drupal database name")
+var db = flag.String("db", "", "Drupal database name - required")
 var driver = flag.String("driver", "mysql", "SQL driver")
 var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
@@ -52,15 +52,28 @@ var verbose = flag.Bool("v", false, "Verbose")
 
 func main() {
 	flag.Parse()
+	if *db == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	if *user == "" {
 		*user = *db
 	}
 
-	if !util.FileExists("content") {
-		fmt.Fprintln(os.Stderr, "There is no content directory here. Did you mean to try somewhere else?")
-		os.Exit(1)
+	if *pass == "" {
+		var input []byte = make([]byte, 100);
+		n, err := os.Stdin.Read(input);
+		util.CheckErrFatal(err, sql)
+		fmt.Printf("%s", input);
 	}
 
+	if !util.FileExists("content") {
+		fmt.Fprintln(os.Stderr, "There is no content directory here. Did you mean to try somewhere else?")
+		os.Exit(2)
+	}
+
+	os.Exit(0)
 	// username:password@protocol(address)/dbname?param=value
 	db := model.Connect(*driver, *user+":"+*pass+"@/"+*db, *prefix, *verbose)
 
@@ -73,6 +86,7 @@ func main() {
 	//	}
 
 	offset := 0
+	fmt.Printf("Vocabularies: %+v\n", db.AllVocabularies())
 	nodes := db.JoinedNodeFields(offset, 10)
 	for len(nodes) > 0 {
 		for _, node := range nodes {
@@ -88,7 +102,7 @@ func main() {
 func processNode(node *model.JoinedNodeDataBody, alias string) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
-	fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias ,node.Title, node.Published, node.Deleted)
+	fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias, node.Title, node.Published, node.Deleted)
 	fmt.Printf("mkdir %s\n", dir)
 
 	err := os.MkdirAll(dir, os.FileMode(0755))
