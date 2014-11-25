@@ -168,7 +168,7 @@ func (db Database) JoinedNodeFields(offset, count int) []*JoinedNodeDataBody {
 	    from %snode inner join %sfield_data_body on %snode.nid = %sfield_data_body.entity_id limit %d,%d`
 	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix, db.Prefix, offset, count)
 	list, err := db.DbMap.Select(JoinedNodeDataBody{}, s2)
-	util.CheckErrFatal(err, sql)
+	util.CheckErrFatal(err, s2)
 	return copyOutJoinedNodeDataBody(list)
 }
 
@@ -197,7 +197,7 @@ func (db Database) GetUrlAlias(nid int32) string {
 	s2 := fmt.Sprintf(sql, db.Prefix)
 	source := fmt.Sprintf("node/%d", nid)
 	list, err := db.DbMap.Select(UrlAlias{}, s2, source)
-	util.CheckErrFatal(err, sql)
+	util.CheckErrFatal(err, s2)
 	if len(list) > 1 {
 		util.Fatal("Expected only one alias for %s but got %d.\n%+v\n", source, len(list), list)
 	}

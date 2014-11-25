@@ -1,5 +1,6 @@
 #!/bin/sh -e
 . ./env.sh
+VERSION=${1:-developer-$(date '+%Y%m%d%H%M%S')}
 
 [ ! -d src/github.com ] && ./update.sh
 #[ ! -d src/mock ] && ./mocks.sh
@@ -9,6 +10,7 @@ VFILE=src/drupal2hugo/util/version.go
 
 echo "// Generated automatically" > $VFILE
 echo "package util" >> $VFILE
+echo "const Version   = \"$VERSION\"" >> $VFILE
 echo "const HgTip     = \"$(hg heads . |grep changeset: |head -1 |cut -f3 -d:)\"" >> $VFILE
 echo "const HgPath    = \"$(hg paths default)\"" >> $VFILE
 echo "const HgBranch  = \"$(hg branch)\"" >> $VFILE

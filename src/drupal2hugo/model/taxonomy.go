@@ -39,15 +39,15 @@ func copyOutVocabularies(rows []interface{}) []*Vocabulary {
 	return result
 }
 
-func (db Database) JoinedTaxonomyTerms() []*JoinedTaxonomyTerm {
-	sql := `select
-	    idx.Nid, t.Name, v.Name as Vocab
-	    from %staxonomy_index idx
-	    inner join %staxonomy_term_data t on idx.tid = t.tid
-	    inner join %staxonomy_term_hierarchy v on t.vid = v.vid`
+func (db Database) JoinedTaxonomyTerms(nid int32) []*JoinedTaxonomyTerm {
+	sql := `select idx.Nid, t.Name, v.Name as Vocab
+	    from %staxonomy_index as idx
+	    inner join %staxonomy_term_data as t on idx.tid = t.tid
+	    join %staxonomy_vocabulary as v on t.vid = v.vid
+	    where idx.Nid = ?`
 	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix)
-	list, err := db.DbMap.Select(JoinedTaxonomyTerm{}, s2)
-	util.CheckErrFatal(err, sql)
+	list, err := db.DbMap.Select(JoinedTaxonomyTerm{}, s2, nid)
+	util.CheckErrFatal(err, s2)
 	return copyOutTaxonomyTerms(list)
 }
 

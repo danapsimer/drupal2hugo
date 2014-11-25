@@ -47,12 +47,20 @@ var pass = flag.String("pass", "", "Drupal password (you will be prompted for th
 //var dir = flag.String("dir", "", "Run in directory")
 //var force = flag.Bool("f", false, "Force overwriting existing files")
 var verbose = flag.Bool("v", false, "Verbose")
+var version = flag.Bool("V", false, "Version information")
 
 // http://blog.golang.org/profiling-go-programs
 // use "go tool pprof" after program termination
 
 func main() {
 	flag.Parse()
+	if *version {
+		fmt.Fprintf(os.Stderr, "Version %s\n", util.Version)
+		fmt.Fprintf(os.Stderr, "Date %s rev %s branch %s\n", util.BuildDate, util.HgTip, util.HgBranch)
+		fmt.Fprintf(os.Stderr, "From %s\n", util.HgPath)
+		os.Exit(0)
+	}
+
 	if *dbName == "" {
 		flag.Usage()
 		os.Exit(1)
@@ -91,7 +99,8 @@ func main() {
 	for len(nodes) > 0 {
 		for _, node := range nodes {
 			alias := db.GetUrlAlias(node.Nid)
-			processNode(node, alias)
+			terms := db.JoinedTaxonomyTerms(node.Nid)
+			processNode(node, alias, terms)
 		}
 		offset += len(nodes)
 		nodes = db.JoinedNodeFields(offset, 10)
@@ -101,63 +110,99 @@ func main() {
 
 func processVocabs(db model.Database) {
 	vocabs := db.AllVocabularies()
-	fmt.Printf("Taxonomies:\n")
-	for _, v := range vocabs {
-		n := strings.ToLower(v.Name)
-		fmt.Printf("  %s: \"%s\"\n", toSingular(n), n)
+	if len(vocabs) > 0 {
+		fmt.Printf("Insert into config.yaml\n")
+		fmt.Printf("-----------------------\n")
+		fmt.Printf("Taxonomies:\n")
+		for _, v := range vocabs {
+			n := strings.ToLower(v.Name)
+			fmt.Printf("  %s: \"%s\"\n", toSingular(n), n)
+		}
 	}
 }
 
-func processNode(node *model.JoinedNodeDataBody, alias string) {
+func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
 	if (*verbose) {
 		fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias, node.Title, node.Published, node.Deleted)
 		fmt.Printf("mkdir %s\n", dir)
-//		fmt.Printf("%+v\n", node)
+		//		fmt.Printf("%+v\n", node)
 	}
 
 	err := os.MkdirAll(dir, os.FileMode(0755))
 	util.CheckErrFatal(err, "mkdir", dir)
 
+	tags := flattenTaxonomies(terms)
+	writeFile(fileName, node, alias, tags)
+}
+
+func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string) {
 	file, err := os.Create(fileName)
 	util.CheckErrFatal(err, "create", fileName)
 
 	w := bufio.NewWriter(file)
-	writeFile(w, node, alias)
+	writeFrontMatter(w, node, alias, tags)
+	writeContent(w, node, alias)
 	w.Flush()
 	file.Close()
 }
 
-func writeFile(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
+func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string, tags []string) {
 	created := time.Unix(node.Created, 0).Format("2006-01-02")
 	changed := time.Unix(node.Changed, 0).Format("2006-01-02")
 	fmt.Fprintln(w, "---")
-	fmt.Fprintf(w, "title:   \"%s\"\n", node.Title)
+	fmt.Fprintf(w, "title:       \"%s\"\n", node.Title)
 	fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
-	fmt.Fprintf(w, "type:    %s\n", node.Type)
-	fmt.Fprintf(w, "date:    %s\n", created)
+	fmt.Fprintf(w, "type:        %s\n", node.Type)
+	fmt.Fprintf(w, "date:        %s\n", created)
 	if changed != created {
-		fmt.Fprintf(w, "changed: %s\n", changed)
+		fmt.Fprintf(w, "changed:     %s\n", changed)
 	}
-	fmt.Fprintf(w, "weight:  %d\n", node.Nid) // the node-id is normally ascending in Drupal and is always unique
-	fmt.Fprintf(w, "draft:   %v\n", !node.Published)
-	fmt.Fprintf(w, "promote: %v\n", node.Promote)
-	fmt.Fprintf(w, "sticky:  %v\n", node.Sticky)
-	fmt.Fprintf(w, "deleted: %v\n", node.Deleted)
-	fmt.Fprintf(w, "url:     %s\n", alias)
-	fmt.Fprintf(w, "aliases: [ node/%d ]\n", node.Nid)
+	fmt.Fprintf(w, "weight:      %d\n", node.Nid) // the node-id is normally ascending in Drupal and is always unique
+	fmt.Fprintf(w, "draft:       %v\n", !node.Published)
+	fmt.Fprintf(w, "promote:     %v\n", node.Promote)
+	fmt.Fprintf(w, "sticky:      %v\n", node.Sticky)
+	fmt.Fprintf(w, "deleted:     %v\n", node.Deleted)
+	fmt.Fprintf(w, "url:         %s\n", alias)
+	fmt.Fprintf(w, "aliases:     [ node/%d ]\n", node.Nid)
+	for _, tag := range tags {
+		fmt.Fprintf(w, "%s\n", tag)
+	}
+}
 
-	fmt.Fprintln(w, "---")
+func writeContent(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
+	if node.BodySummary != "" {
+		fmt.Fprintf(w, "\n# Summary:\n")
+		for _, line := range strings.Split(node.BodySummary, "\n") {
+			fmt.Fprintf(w, "# %s\n", line)
+		}
+	}
+
+	fmt.Fprintln(w, "\n---")
 	fmt.Fprintln(w, node.BodyValue)
 }
 
 func toSingular(plural string) string {
 	if strings.HasSuffix(plural, "ies") {
-		return string(plural[:len(plural)-3]) + "y"
+		return string(plural[:len(plural) - 3]) + "y"
 	}
 	if strings.HasSuffix(plural, "s") {
-		return string(plural[:len(plural)-1])
+		return string(plural[:len(plural) - 1])
 	}
 	return plural
+}
+
+func flattenTaxonomies(terms []*model.JoinedTaxonomyTerm) (result []string) {
+	table := make(map[string][]string)
+	for _, t := range terms {
+		v := strings.ToLower(t.Vocab)
+		table[v] = append(table[v], strings.ToLower(t.Name))
+	}
+	//fmt.Printf("taxonomies %+v\n", table)
+
+	for t, list := range table {
+		result = append(result, fmt.Sprintf("%-12s [ \"%s\" ]", t+":", strings.Join(list, "\", \"")))
+	}
+	return
 }
