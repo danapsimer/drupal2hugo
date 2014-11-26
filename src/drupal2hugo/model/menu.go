@@ -1,6 +1,13 @@
 package model
 
-import "drupal2hugo/util"
+import (
+	"drupal2hugo/util"
+	"github.com/go-sql-driver/mysql"
+)
+
+const (
+	NoSuchTable uint16 = 1146 // http://dev.mysql.com/doc/refman/5.5/en/error-messages-server.html
+)
 
 type Book struct {
 	Mlid     int32
@@ -15,9 +22,15 @@ type MenuCustom struct {
 }
 
 func (db Database) AllBooks() []*Book {
-	sql := "select * from " + db.Prefix + "menu_custom"
+	sql := "select * from " + db.Prefix + "xx"
 	list, err := db.DbMap.Select(Book{}, sql)
-	util.CheckErrFatal(err, sql)
+	if err != nil {
+		e := err.(*mysql.MySQLError)
+		if e.Number == NoSuchTable {
+			return []*Book{}
+		}
+		util.CheckErrFatal(err, sql)
+	}
 	return copyOutBook(list)
 }
 
