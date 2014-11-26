@@ -1,0 +1,128 @@
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_book`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_book` (
+  `mlid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The book page’s drp_menu_links.mlid.',
+  `nid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The book page’s drp_node.nid.',
+  `bid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The book ID is the drp_book.nid of the top-level page.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores book outline information. Uniquely connects each...';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_menu_custom`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_menu_custom` (
+  `menu_name` varchar(32) NOT NULL DEFAULT '' COMMENT 'Primary Key: Unique key for menu. This is used as a block delta so length is 32.',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'Menu title; displayed at top of block.',
+  `description` text COMMENT 'Menu description.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Holds definitions for top-level custom menus (for example...';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_menu_links`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_menu_links` (
+  `menu_name` varchar(32) NOT NULL DEFAULT '' COMMENT 'The menu name. All links with the same menu name (such as ’navigation’) are part of the same menu.',
+`mlid` int(10) unsigned NOT NULL COMMENT 'The menu link ID (mlid) is the integer primary key.',
+  `plid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The parent link ID (plid) is the mlid of the link above in the hierarchy, or zero if the link is at the top level in its menu.',
+  `link_path` varchar(255) NOT NULL DEFAULT '' COMMENT 'The Drupal path or external path this link points to.',
+  `router_path` varchar(255) NOT NULL DEFAULT '' COMMENT 'For links corresponding to a Drupal path (external = 0), this connects the link to a drp_menu_router.path for joins.',
+  `link_title` varchar(255) NOT NULL DEFAULT '' COMMENT 'The text displayed for the link, which may be modified by a title callback stored in drp_menu_router.',
+  `options` blob COMMENT 'A serialized array of options to be passed to the url() or l() function, such as a query string or HTML attributes.',
+  `module` varchar(255) NOT NULL DEFAULT 'system' COMMENT 'The name of the module that generated this link.',
+  `hidden` smallint(6) NOT NULL DEFAULT '0' COMMENT 'A flag for whether the link should be rendered in menus. (1 = a disabled menu item that may be shown on admin screens, -1 = a menu callback, 0 = a normal, visible link)',
+  `external` smallint(6) NOT NULL DEFAULT '0' COMMENT 'A flag to indicate if the link points to a full URL starting with a protocol, like http:// (1 = external, 0 = internal).',
+  `has_children` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Flag indicating whether any links have this link as a parent (1 = children exist, 0 = no children).',
+  `expanded` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Flag for whether this link should be rendered as expanded in menus - expanded links always have their child links displayed, instead of only when the link is in the active trail (1 = expanded, 0 = not expanded)',
+  `weight` int(11) NOT NULL DEFAULT '0' COMMENT 'Link weight among links in the same menu at the same depth.',
+  `depth` smallint(6) NOT NULL DEFAULT '0' COMMENT 'The depth relative to the top level. A link with plid == 0 will have depth == 1.',
+  `customized` smallint(6) NOT NULL DEFAULT '0' COMMENT 'A flag to indicate that the user has manually created or edited the link (1 = customized, 0 = not customized).',
+  `p1` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The first mlid in the materialized path. If N = depth, then pN must equal the mlid. If depth > 1 then p(N-1) must equal the plid. All pX where X > depth must equal zero. The columns p1 .. p9 are also called the parents.',
+  `p2` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The second mlid in the materialized path. See p1.',
+  `p3` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The third mlid in the materialized path. See p1.',
+  `p4` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The fourth mlid in the materialized path. See p1.',
+  `p5` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The fifth mlid in the materialized path. See p1.',
+  `p6` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The sixth mlid in the materialized path. See p1.',
+  `p7` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The seventh mlid in the materialized path. See p1.',
+  `p8` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The eighth mlid in the materialized path. See p1.',
+  `p9` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'The ninth mlid in the materialized path. See p1.',
+  `updated` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Flag that indicates that this link was generated during the update from Drupal 5.'
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Contains the individual links within a menu.' AUTO_INCREMENT=4165 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_menu_router`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_menu_router` (
+  `path` varchar(255) NOT NULL DEFAULT '' COMMENT 'Primary Key: the Drupal path this entry describes',
+  `load_functions` blob NOT NULL COMMENT 'A serialized array of function names (like node_load) to be called to load an object corresponding to a part of the current path.',
+  `to_arg_functions` blob NOT NULL COMMENT 'A serialized array of function names (like user_uid_optional_to_arg) to be called to replace a part of the router path with another string.',
+  `access_callback` varchar(255) NOT NULL DEFAULT '' COMMENT 'The callback which determines the access to this router path. Defaults to user_access.',
+  `access_arguments` blob COMMENT 'A serialized array of arguments for the access callback.',
+  `page_callback` varchar(255) NOT NULL DEFAULT '' COMMENT 'The name of the function that renders the page.',
+  `page_arguments` blob COMMENT 'A serialized array of arguments for the page callback.',
+  `delivery_callback` varchar(255) NOT NULL DEFAULT '' COMMENT 'The name of the function that sends the result of the page_callback function to the browser.',
+  `fit` int(11) NOT NULL DEFAULT '0' COMMENT 'A numeric representation of how specific the path is.',
+  `number_parts` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Number of parts in this router path.',
+  `context` int(11) NOT NULL DEFAULT '0' COMMENT 'Only for local tasks (tabs) - the context of a local task to control its placement.',
+  `tab_parent` varchar(255) NOT NULL DEFAULT '' COMMENT 'Only for local tasks (tabs) - the router path of the parent page (which may also be a local task).',
+  `tab_root` varchar(255) NOT NULL DEFAULT '' COMMENT 'Router path of the closest non-tab parent page. For pages that are not local tasks, this will be the same as the path.',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'The title for the current page, or the title for the tab if this is a local task.',
+  `title_callback` varchar(255) NOT NULL DEFAULT '' COMMENT 'A function which will alter the title. Defaults to t()',
+  `title_arguments` varchar(255) NOT NULL DEFAULT '' COMMENT 'A serialized array of arguments for the title callback. If empty, the title will be used as the sole argument for the title callback.',
+  `theme_callback` varchar(255) NOT NULL DEFAULT '' COMMENT 'A function which returns the name of the theme that will be used to render this page. If left empty, the default theme will be used.',
+  `theme_arguments` varchar(255) NOT NULL DEFAULT '' COMMENT 'A serialized array of arguments for the theme callback.',
+  `type` int(11) NOT NULL DEFAULT '0' COMMENT 'Numeric representation of the type of the menu item, like MENU_LOCAL_TASK.',
+  `description` text NOT NULL COMMENT 'A description of this item.',
+  `position` varchar(255) NOT NULL DEFAULT '' COMMENT 'The position of the block (left or right) on the system administration page for this item.',
+  `weight` int(11) NOT NULL DEFAULT '0' COMMENT 'Weight of the element. Lighter weights are higher up, heavier weights go down.',
+  `include_file` mediumtext COMMENT 'The file to include for this element, usually the page callback function lives in this file.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Maps paths to various callbacks (access, page and title)';
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `drp_book`
+--
+ALTER TABLE `drp_book`
+ ADD PRIMARY KEY (`mlid`), ADD UNIQUE KEY `nid` (`nid`), ADD KEY `bid` (`bid`);
+
+--
+-- Indexes for table `drp_menu_custom`
+--
+ALTER TABLE `drp_menu_custom`
+ ADD PRIMARY KEY (`menu_name`);
+
+--
+-- Indexes for table `drp_menu_links`
+--
+ALTER TABLE `drp_menu_links`
+ ADD PRIMARY KEY (`mlid`), ADD KEY `path_menu` (`link_path`(128),`menu_name`), ADD KEY `menu_plid_expand_child` (`menu_name`,`plid`,`expanded`,`has_children`), ADD KEY `menu_parents` (`menu_name`,`p1`,`p2`,`p3`,`p4`,`p5`,`p6`,`p7`,`p8`,`p9`), ADD KEY `router_path` (`router_path`(128));
+
+--
+-- Indexes for table `drp_menu_router`
+--
+ALTER TABLE `drp_menu_router`
+ ADD PRIMARY KEY (`path`), ADD KEY `fit` (`fit`), ADD KEY `tab_parent` (`tab_parent`(64),`weight`,`title`), ADD KEY `tab_root_weight_title` (`tab_root`(64),`weight`,`title`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `drp_menu_links`
+--
+ALTER TABLE `drp_menu_links`
+MODIFY `mlid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The menu link ID (mlid) is the integer primary key.',AUTO_INCREMENT=4165;
+

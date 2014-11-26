@@ -1,4 +1,5 @@
 bin/.*
+content/.*
 pkg/.*
 src/mock/.*
 src/code\.google\.com/.*

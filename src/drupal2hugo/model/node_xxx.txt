@@ -62,6 +62,20 @@ CREATE TABLE IF NOT EXISTS `drp_node_type` (
   `orig_type` varchar(255) NOT NULL DEFAULT '' COMMENT 'The original machine-readable name of this node type. This may be different from the current type name if the locked field is 0.'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores information about all defined drp_node types.';
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `drp_url_alias`
+--
+
+CREATE TABLE IF NOT EXISTS `drp_url_alias` (
+`pid` int(10) unsigned NOT NULL COMMENT 'A unique path alias identifier.',
+  `source` varchar(255) NOT NULL DEFAULT '' COMMENT 'The Drupal path this alias is for; e.g. node/12.',
+  `alias` varchar(255) NOT NULL DEFAULT '' COMMENT 'The alias for this path; e.g. title-of-the-story.',
+  `language` varchar(12) NOT NULL DEFAULT '' COMMENT 'The language this alias is for; if ’und’, the alias will be used for unknown languages. Each Drupal path can have an alias for each supported language.'
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='A list of URL aliases for Drupal paths; a user may visit...' AUTO_INCREMENT=171 ;
+
+
 --
 -- Indexes for dumped tables
 --
@@ -98,3 +112,9 @@ MODIFY `nid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The primary ident
 --
 ALTER TABLE `drp_node_revision`
 MODIFY `vid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'The primary identifier for this version.',AUTO_INCREMENT=425;
+
+--
+-- Indexes for table `drp_url_alias`
+--
+ALTER TABLE `drp_url_alias`
+ ADD PRIMARY KEY (`pid`), ADD KEY `alias_language_pid` (`alias`,`language`,`pid`), ADD KEY `source_language_pid` (`source`,`language`,`pid`);

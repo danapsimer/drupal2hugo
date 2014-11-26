@@ -88,6 +88,9 @@ func main() {
 	for _, nt := range db.AllNodeTypes() {
 		fmt.Printf("%v\n", nt)
 	}
+	for _, nt := range db.AllMenus() {
+		fmt.Printf("%v\n", nt)
+	}
 	processVocabs(db)
 
 	//	for _, node := range model.AllNodes(db, *prefix) {
