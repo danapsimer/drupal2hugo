@@ -36,6 +36,7 @@ import (
 	"io"
 	"time"
 	"strings"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var dbName = flag.String("db", "", "Drupal database name - required")
@@ -106,6 +107,10 @@ func main() {
 		for _, node := range nodes {
 			alias := db.GetUrlAlias(node.Nid)
 			terms := db.JoinedTaxonomyTerms(node.Nid)
+			menus := db.JoinedMenus(fmt.Sprintf("node/%d", node.Nid))
+			if len(menus) > 0 {
+				spew.Printf("node/%d %s %s\n  %+v\n", node.Nid, alias, node.Title, menus)
+			}
 			processNode(node, alias, terms)
 		}
 		offset += len(nodes)

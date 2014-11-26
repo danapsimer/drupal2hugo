@@ -23,6 +23,7 @@ fetchFreshDepsFromInternet()
                  github.com/go-sql-driver/mysql \
                  github.com/robertkrimen/terst \
                  github.com/robertkrimen/smuggol \
+                 github.com/davecgh/go-spew/spew \
                  || echo "Non-zero exit code from 'go get'."
 
     for examples in src/github.com/ziutek/mymysql/examples \

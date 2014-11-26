@@ -28,11 +28,10 @@
       <module fileurl="file://$PROJECT_DIR$/drupal2hugo.iml" filepath="$PROJECT_DIR$/drupal2hugo.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_3" assert-keyword="false" jdk-15="false" project-jdk-name="Go SDK go1.3 linux/amd64" project-jdk-type="Google Go SDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_3" assert-keyword="false" jdk-15="false">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="hg4idea" />
   </component>
 </project>
-

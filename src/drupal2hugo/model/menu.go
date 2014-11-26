@@ -3,6 +3,7 @@ package model
 import (
 	"drupal2hugo/util"
 	"github.com/go-sql-driver/mysql"
+	"fmt"
 )
 
 const (
@@ -43,7 +44,6 @@ func copyOutBook(rows []interface{}) []*Book {
 	return result
 }
 
-
 func (db Database) AllMenus() []*MenuCustom {
 	sql := "select * from " + db.Prefix + "menu_custom"
 	list, err := db.DbMap.Select(MenuCustom{}, sql)
@@ -60,24 +60,42 @@ func copyOutMenuCustoms(rows []interface{}) []*MenuCustom {
 	return result
 }
 
-//func (db Database) JoinedTaxonomyTerms(nid int32) []*JoinedTaxonomyTerm {
-//	sql := `select idx.Nid, t.Name, v.Name as Vocab
-//	    from %staxonomy_index as idx
-//	    inner join %staxonomy_term_data as t on idx.tid = t.tid
-//	    join %staxonomy_vocabulary as v on t.vid = v.vid
-//	    where idx.Nid = ?`
-//	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix)
-//	list, err := db.DbMap.Select(JoinedTaxonomyTerm{}, s2, nid)
-//	util.CheckErrFatal(err, s2)
-//	return copyOutTaxonomyTerms(list)
-//}
-//
-//func copyOutTaxonomyTerms(rows []interface{}) []*JoinedTaxonomyTerm {
-//	size := len(rows)
-//	result := make([]*JoinedTaxonomyTerm, size)
-//	for i := 0; i < size; i++ {
-//		result[i] = rows[i].(*JoinedTaxonomyTerm)
-//	}
-//	return result
-//}
+type JoinedMenu struct {
+	MenuName      string
+	Title         string
+	Mlid          int32
+	Plid          int32
+	LinkPath      string
+	LinkTitle     string
+	Module        string
+	External      bool
+	HasChildren   bool
+	Expanded      bool
+	Weight        int
+	TreeDepth     int
+	Customized    bool
+}
+
+func (db Database) JoinedMenus(path string) []*JoinedMenu {
+	sql := `select c.menu_name as MenuName, c.title,
+	               m.mlid, m.plid, m.link_path as LinkPath, m.link_title as LinkTitle,
+	               m.module, m.external, m.has_children as HasChildren, m.expanded,
+	               m.weight, m.depth as TreeDepth, m.customized
+	    from %smenu_links as m
+	    join %smenu_custom as c on m.menu_name = c.menu_name
+	    where m.link_path = ? and hidden = 0`
+	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix)
+	list, err := db.DbMap.Select(JoinedMenu{}, s2, path)
+	util.CheckErrFatal(err, s2)
+	return copyOutJoinedMenu(list)
+}
+
+func copyOutJoinedMenu(rows []interface{}) []*JoinedMenu {
+	size := len(rows)
+	result := make([]*JoinedMenu, size)
+	for i := 0; i < size; i++ {
+		result[i] = rows[i].(*JoinedMenu)
+	}
+	return result
+}
 
