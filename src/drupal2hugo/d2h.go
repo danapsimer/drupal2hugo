@@ -36,7 +36,6 @@ import (
 	"io"
 	"time"
 	"strings"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var dbName = flag.String("db", "", "Drupal database name - required")
@@ -85,16 +84,16 @@ func main() {
 
 	// username:password@protocol(address)/dbname?param=value
 	db := model.Connect(*driver, *user+":"+*pass+"@/"+*dbName, *prefix, *verbose)
+	allBookPagesAsMap := db.AllBookPagesAsMap()
 
-	for _, nt := range db.AllNodeTypes() {
-		fmt.Printf("%v\n", nt)
-	}
-	for _, b := range db.AllBooks() {
-		fmt.Printf("%v\n", b)
-	}
-	for _, m := range db.AllMenus() {
-		fmt.Printf("%v\n", m)
-	}
+//	fmt.Println("\nnode types:")
+//	spew.Dump(db.AllNodeTypes())
+//	fmt.Println("\nbooks:")
+//	spew.Dump(db.AllBooksAsMap())
+//	fmt.Println("\nbook pages:")
+//	spew.Dump(allBookPagesAsMap)
+//	fmt.Println("\nmenus:")
+//	spew.Dump(db.AllMenus())
 	processVocabs(db)
 
 	//	for _, node := range model.AllNodes(db, *prefix) {
@@ -107,11 +106,24 @@ func main() {
 		for _, node := range nodes {
 			alias := db.GetUrlAlias(node.Nid)
 			terms := db.JoinedTaxonomyTerms(node.Nid)
-			menus := db.JoinedMenus(fmt.Sprintf("node/%d", node.Nid))
-			if len(menus) > 0 {
-				spew.Printf("node/%d %s %s\n  %+v\n", node.Nid, alias, node.Title, menus)
+			menus := db.JoinedMenusForPath(fmt.Sprintf("node/%d", node.Nid))
+//			hasMenuOrBook := false
+			fmt.Printf("node/%d %s %s\n", node.Nid, alias, node.Title)
+			if bookPage, exists := allBookPagesAsMap[node.Nid]; exists {
+//				spew.Printf("  book %v\n", bookPage)
+				if len(menus) == 0 {
+					menus = db.MenusForMlid(bookPage.Mlid)
+				}
+//				hasMenuOrBook = true
 			}
-			processNode(node, alias, terms)
+			if len(menus) > 0 {
+//				spew.Printf("  menu %v\n", menus)
+//				hasMenuOrBook = true
+			}
+//			if !hasMenuOrBook {
+//				fmt.Printf("  --\n")
+//			}
+			processNode(node, alias, terms, menus)
 		}
 		offset += len(nodes)
 		nodes = db.JoinedNodeFields(offset, 10)
@@ -132,7 +144,7 @@ func processVocabs(db model.Database) {
 	}
 }
 
-func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm) {
+func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
 	if (*verbose) {
@@ -145,21 +157,21 @@ func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.Jo
 	util.CheckErrFatal(err, "mkdir", dir)
 
 	tags := flattenTaxonomies(terms)
-	writeFile(fileName, node, alias, tags)
+	writeFile(fileName, node, alias, tags, menus)
 }
 
-func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string) {
+func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu) {
 	file, err := os.Create(fileName)
 	util.CheckErrFatal(err, "create", fileName)
 
 	w := bufio.NewWriter(file)
-	writeFrontMatter(w, node, alias, tags)
-	writeContent(w, node, alias)
+	writeFrontMatter(w, node, alias, tags, menus)
+	writeContent(w, node)
 	w.Flush()
 	file.Close()
 }
 
-func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string, tags []string) {
+func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu) {
 	created := time.Unix(node.Created, 0).Format("2006-01-02")
 	changed := time.Unix(node.Changed, 0).Format("2006-01-02")
 	fmt.Fprintln(w, "---")
@@ -175,14 +187,17 @@ func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string,
 	fmt.Fprintf(w, "promote:     %v\n", node.Promote)
 	fmt.Fprintf(w, "sticky:      %v\n", node.Sticky)
 	fmt.Fprintf(w, "deleted:     %v\n", node.Deleted)
-	fmt.Fprintf(w, "url:         %s\n", alias)
+	fmt.Fprintf(w, "url:         /%s\n", alias)
 	fmt.Fprintf(w, "aliases:     [ node/%d ]\n", node.Nid)
+	if len(menus) > 0 {
+		fmt.Fprintf(w, "menu:        [ \"%s\" ]\n", flattenMenuNames(menus))
+	}
 	for _, tag := range tags {
 		fmt.Fprintf(w, "%s\n", tag)
 	}
 }
 
-func writeContent(w io.Writer, node *model.JoinedNodeDataBody, alias string) {
+func writeContent(w io.Writer, node *model.JoinedNodeDataBody) {
 	if node.BodySummary != "" {
 		fmt.Fprintf(w, "\n# Summary:\n")
 		for _, line := range strings.Split(node.BodySummary, "\n") {
@@ -202,6 +217,14 @@ func toSingular(plural string) string {
 		return string(plural[:len(plural) - 1])
 	}
 	return plural
+}
+
+func flattenMenuNames(menus []*model.JoinedMenu) (result string) {
+	var list []string
+	for _, m := range menus {
+		list = append(list, m.MenuName)
+	}
+	return strings.Join(list, "\", \"")
 }
 
 func flattenTaxonomies(terms []*model.JoinedTaxonomyTerm) (result []string) {
