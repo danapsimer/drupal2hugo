@@ -23,7 +23,8 @@ Of course, start by installing Go, [setting up paths](http://golang.org/doc/code
 
     hg clone https://rickb777@bitbucket.org/rickb777/drupal2hugo
     cd drupal2hugo
-
+    ./update.sh
+    ./current-deps.sh
 
 ## Licence
 

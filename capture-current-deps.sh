@@ -19,6 +19,7 @@ for host in github.com code.google.com golang.org; do
             cd $repo
 
             if [ -d .git ]; then
+                current "mkdir -p src/$repo"
                 current "cd src/$repo"
                 rev=$(git log -1 | grep commit | sed 's#commit ##')
                 current "git reset -q --hard"
@@ -28,6 +29,7 @@ for host in github.com code.google.com golang.org; do
             fi
 
             if [ -d .hg ]; then
+                current "mkdir -p src/$repo"
                 current "cd src/$repo"
                 rev=$(hg id -i)
                 current "hg revert -q -C ."
