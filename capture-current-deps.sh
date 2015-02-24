@@ -4,11 +4,11 @@ HERE=$PWD
 
 . ./env.sh
 
-echo '#!/bin/sh -ex' > current-deps.sh
+echo '#!/bin/sh -ex' > get-current-deps.sh
 
 current()
 {
-    echo "$@" >> $HERE/current-deps.sh
+    echo "$@" >> $HERE/get-current-deps.sh
 }
 
 cd src
@@ -44,4 +44,4 @@ for host in github.com code.google.com golang.org; do
 done
 cd ..
 
-chmod +x current-deps.sh
+chmod +x get-current-deps.sh

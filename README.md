@@ -1,7 +1,7 @@
 # Drupal2Hugo
 
-Drupal2Hugo provides a basic converter to export a Drupal website to text files in Hugo format. It will do a lot of
-the work for you, but some manual intervention will still be needed.
+Drupal2Hugo provides a basic converter to export a Drupal website to text files in [Hugo](http://gohugo.io/) format. 
+It will do a lot of the work for you, but some manual intervention will still be needed.
 
 * For each Drupal node, a corresponding text file is written containing the metadata (front matter)
   and the node body content.
@@ -19,12 +19,32 @@ This is experimental. YMMV.
 
 ## Quick start
 
+Idealy, there would already be a selection of pre-build binaries for you, but there aren't. So you need to build
+from source, which is quite easy.
+
 Of course, start by installing Go, [setting up paths](http://golang.org/doc/code.html), etc. Then:
 
     hg clone https://rickb777@bitbucket.org/rickb777/drupal2hugo
     cd drupal2hugo
-    ./update.sh
-    ./current-deps.sh
+    ./get-current-deps.sh
+    ./build.sh
+
+There should be a new binary for your computer architecture called `bin/drupal2hugo`.
+
+    Usage of drupal2hugo:
+      -V=false: Version information
+      -db="": Drupal database name - required
+      -driver="mysql": SQL driver
+      -pass="": Drupal password (you will be prompted for the password if this is absent)
+      -prefix="drp_": Drupal table prefix
+      -user="": Drupal user (defaults to be the same as the Drupal database name)
+      -v=false: Verbose
+
+Example usage:
+
+    drupal2hugo -db mydrupal -user drupaluser -pass password
+
+A new `content` folder should be produced containing the Markdown files for importing into your Hugo project.
 
 ## Licence
 
