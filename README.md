@@ -17,6 +17,16 @@ the work for you, but some manual intervention will still be needed.
 
 This is experimental. YMMV.
 
+## Quick start
+
+Of course, start by installing Go, [setting up paths](http://golang.org/doc/code.html), etc. Then:
+
+    hg clone https://rickb777@bitbucket.org/rickb777/drupal2hugo
+    cd drupal2hugo
+
+
+## Licence
+
 MIT Licence.
 
 [![Build Status](https://drone.io/bitbucket.org/rickb777/drupal2hugo/status.png)](https://drone.io/bitbucket.org/rickb777/drupal2hugo/latest)
