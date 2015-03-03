@@ -46,6 +46,10 @@ Example usage:
 
 A new `content` folder should be produced containing the Markdown files for importing into your Hugo project.
 
+Each page may contain hyperlinks to other pages within its prose. These should preferably be domain-relative links 
+(such as "/post/latest-ideas"). If they are Drupal node links like "/node/247", they will be broken links after
+export. At the moment, you have to fix these manually.
+
 ## Licence
 
 MIT Licence.
