@@ -2,8 +2,8 @@ package model
 
 import (
 	"drupal2hugo/util"
-	"github.com/go-sql-driver/mysql"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"os"
 )
 
@@ -12,18 +12,18 @@ const (
 )
 
 type BookPage struct {
-	Mlid     int32
-	Nid      int32
-	Bid      int32
+	Mlid int32
+	Nid  int32
+	Bid  int32
 }
 
 type Book struct {
-	Bid      int32
-	Title    string
+	Bid   int32
+	Title string
 }
 
 type MenuCustom struct {
-	MenuName    string  `db:"menu_name"`
+	MenuName    string `db:"menu_name"`
 	Title       string
 	Description string
 }
@@ -43,7 +43,7 @@ func (db Database) AllBookPages() []*BookPage {
 	sql := "select * from " + db.Prefix + "book"
 	list, err := db.DbMap.Select(BookPage{}, sql)
 	if hasError(err, sql) {
-			return []*BookPage{}
+		return []*BookPage{}
 	}
 	return copyOutBookPage(list)
 }
@@ -103,34 +103,34 @@ func copyOutMenuCustoms(rows []interface{}) []*MenuCustom {
 }
 
 type Menu struct {
-	MenuName      string
-	Mlid          int32
-	Plid          int32
-	LinkPath      string
-	LinkTitle     string
-	Module        string
-	External      bool
-	HasChildren   bool
-	Expanded      bool
-	Weight        int
-	TreeDepth     int
-	Customized    bool
+	MenuName    string
+	Mlid        int32
+	Plid        int32
+	LinkPath    string
+	LinkTitle   string
+	Module      string
+	External    bool
+	HasChildren bool
+	Expanded    bool
+	Weight      int
+	TreeDepth   int
+	Customized  bool
 }
 
 type JoinedMenu struct {
-	MenuName      string
-	Title         string
-	Mlid          int32
-	Plid          int32
-	LinkPath      string
-	LinkTitle     string
-	Module        string
-	External      bool
-	HasChildren   bool
-	Expanded      bool
-	Weight        int
-	TreeDepth     int
-	Customized    bool
+	MenuName    string
+	Title       string
+	Mlid        int32
+	Plid        int32
+	LinkPath    string
+	LinkTitle   string
+	Module      string
+	External    bool
+	HasChildren bool
+	Expanded    bool
+	Weight      int
+	TreeDepth   int
+	Customized  bool
 }
 
 func (db Database) MenusForMlid(mlid int32) []*JoinedMenu {
@@ -190,11 +190,15 @@ func copyOutJoinedMenu(rows []interface{}) []*JoinedMenu {
 
 func hasError(err error, sql string) bool {
 	if err != nil {
-		e := err.(*mysql.MySQLError)
-		if e.Number == NoSuchTable {
-			return true
+		switch err := err.(type) {
+		case *mysql.MySQLError:
+			if err.Number == NoSuchTable {
+				return true
+			}
+			util.CheckErrFatal(err, sql)
+		default:
+			util.CheckErrFatal(err, sql)
 		}
-		util.CheckErrFatal(err, sql)
 	}
 	return false
 }

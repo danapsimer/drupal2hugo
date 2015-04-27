@@ -25,17 +25,17 @@
 package main
 
 import (
-	"flag"
-	"drupal2hugo/util"
-	"os"
+	"bufio"
 	"drupal2hugo/model"
+	"drupal2hugo/util"
+	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"path"
-	"bufio"
 	"io"
-	"time"
+	"os"
+	"path"
 	"strings"
+	"time"
 )
 
 var dbName = flag.String("db", "", "Drupal database name - required")
@@ -43,6 +43,7 @@ var driver = flag.String("driver", "mysql", "SQL driver")
 var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
 var pass = flag.String("pass", "", "Drupal password (you will be prompted for the password if this is absent)")
+var host = flag.String("host", "localhost", "Mysql host")
 
 //var dir = flag.String("dir", "", "Run in directory")
 //var force = flag.Bool("f", false, "Force overwriting existing files")
@@ -83,17 +84,17 @@ func main() {
 	}
 
 	// username:password@protocol(address)/dbname?param=value
-	db := model.Connect(*driver, *user+":"+*pass+"@/"+*dbName, *prefix, *verbose)
-	allBookPagesAsMap := db.AllBookPagesAsMap()
+	db := model.Connect(*driver, *user+":"+*pass+"@tcp("+*host+")/"+*dbName, *prefix, *verbose)
+	allBookPagesAsMap := make(map[int32]*model.BookPage) //db.AllBookPagesAsMap()
 
-//	fmt.Println("\nnode types:")
-//	spew.Dump(db.AllNodeTypes())
-//	fmt.Println("\nbooks:")
-//	spew.Dump(db.AllBooksAsMap())
-//	fmt.Println("\nbook pages:")
-//	spew.Dump(allBookPagesAsMap)
-//	fmt.Println("\nmenus:")
-//	spew.Dump(db.AllMenus())
+	//	fmt.Println("\nnode types:")
+	//	spew.Dump(db.AllNodeTypes())
+	//	fmt.Println("\nbooks:")
+	//	spew.Dump(db.AllBooksAsMap())
+	//	fmt.Println("\nbook pages:")
+	//	spew.Dump(allBookPagesAsMap)
+	//	fmt.Println("\nmenus:")
+	//	spew.Dump(db.AllMenus())
 	processVocabs(db)
 
 	//	for _, node := range model.AllNodes(db, *prefix) {
@@ -107,22 +108,22 @@ func main() {
 			alias := db.GetUrlAlias(node.Nid)
 			terms := db.JoinedTaxonomyTerms(node.Nid)
 			menus := db.JoinedMenusForPath(fmt.Sprintf("node/%d", node.Nid))
-//			hasMenuOrBook := false
+			//			hasMenuOrBook := false
 			fmt.Printf("node/%d %s %s\n", node.Nid, alias, node.Title)
 			if bookPage, exists := allBookPagesAsMap[node.Nid]; exists {
-//				spew.Printf("  book %v\n", bookPage)
+				//				spew.Printf("  book %v\n", bookPage)
 				if len(menus) == 0 {
 					menus = db.MenusForMlid(bookPage.Mlid)
 				}
-//				hasMenuOrBook = true
+				//				hasMenuOrBook = true
 			}
 			if len(menus) > 0 {
-//				spew.Printf("  menu %v\n", menus)
-//				hasMenuOrBook = true
+				//				spew.Printf("  menu %v\n", menus)
+				//				hasMenuOrBook = true
 			}
-//			if !hasMenuOrBook {
-//				fmt.Printf("  --\n")
-//			}
+			//			if !hasMenuOrBook {
+			//				fmt.Printf("  --\n")
+			//			}
 			processNode(node, alias, terms, menus)
 		}
 		offset += len(nodes)
@@ -147,8 +148,8 @@ func processVocabs(db model.Database) {
 func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
-	if (*verbose) {
-		fmt.Printf("%s %s '%s' pub=%v del=%v\n", node.Type, alias, node.Title, node.Published, node.Deleted)
+	if *verbose {
+		fmt.Printf("%s %s '%s' pub=%v\n", node.Type, alias, node.Title, node.Published)
 		fmt.Printf("mkdir %s\n", dir)
 		//		fmt.Printf("%+v\n", node)
 	}
@@ -176,17 +177,17 @@ func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string,
 	changed := time.Unix(node.Changed, 0).Format("2006-01-02")
 	fmt.Fprintln(w, "---")
 	fmt.Fprintf(w, "title:       \"%s\"\n", node.Title)
-	fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
+	//fmt.Fprintf(w, "description: \"%s\"\n", node.BodySummary)
 	fmt.Fprintf(w, "type:        %s\n", node.Type)
 	fmt.Fprintf(w, "date:        %s\n", created)
 	if changed != created {
 		fmt.Fprintf(w, "changed:     %s\n", changed)
 	}
-	fmt.Fprintf(w, "weight:      %d\n", node.Nid) // the node-id is normally ascending in Drupal and is always unique
+	//fmt.Fprintf(w, "weight:      %d\n", node.Nid) // the node-id is normally ascending in Drupal and is always unique
 	fmt.Fprintf(w, "draft:       %v\n", !node.Published)
 	fmt.Fprintf(w, "promote:     %v\n", node.Promote)
 	fmt.Fprintf(w, "sticky:      %v\n", node.Sticky)
-	fmt.Fprintf(w, "deleted:     %v\n", node.Deleted)
+	//fmt.Fprintf(w, "deleted:     %v\n", node.Deleted)
 	fmt.Fprintf(w, "url:         /%s\n", alias)
 	fmt.Fprintf(w, "aliases:     [ node/%d ]\n", node.Nid)
 	if len(menus) > 0 {
@@ -206,15 +207,21 @@ func writeContent(w io.Writer, node *model.JoinedNodeDataBody) {
 	}
 
 	fmt.Fprintln(w, "\n---")
-	fmt.Fprintln(w, node.BodyValue)
+	body := node.BodyValue
+	if strings.HasPrefix(body, node.BodySummary) {
+		body = body[len(node.BodySummary):]
+		fmt.Fprintln(w, node.BodySummary)
+		fmt.Fprintln(w, "<!--more-->")
+	}
+	fmt.Fprintln(w, body)
 }
 
 func toSingular(plural string) string {
 	if strings.HasSuffix(plural, "ies") {
-		return string(plural[:len(plural) - 3]) + "y"
+		return string(plural[:len(plural)-3]) + "y"
 	}
 	if strings.HasSuffix(plural, "s") {
-		return string(plural[:len(plural) - 1])
+		return string(plural[:len(plural)-1])
 	}
 	return plural
 }

@@ -25,9 +25,9 @@
 package model
 
 import (
-	"github.com/rickb777/gorp"
 	"drupal2hugo/util"
 	"fmt"
+	"github.com/rickb777/gorp"
 )
 
 //type NodeRevision struct {
@@ -74,7 +74,6 @@ import (
 //	FieldTagsTid int32
 //}
 
-
 type Node struct {
 	Nid       int32
 	Vid       int32
@@ -93,7 +92,7 @@ type Node struct {
 }
 
 func AllNodes(dbMap *gorp.DbMap, prefix string) []*Node {
-	sql := "select * from " + prefix + "node"
+	sql := "select nid,vid,type,language,title,uid,status,created,changed,comment,promote,sticky,tnid,translate from " + prefix + "node"
 	list, err := dbMap.Select(Node{}, sql)
 	util.CheckErrFatal(err, sql)
 	return copyOutNode(list)
@@ -109,10 +108,10 @@ func copyOutNode(rows []interface{}) []*Node {
 }
 
 type NodeType struct {
-	Type        string
-	Name        string
-	Base        string
-	Module      string
+	Type   string
+	Name   string
+	Module string
+	// Base        string
 	//	Description string
 	//	Help        string
 	//	HasTitle    bool
@@ -125,7 +124,7 @@ type NodeType struct {
 }
 
 func (db Database) AllNodeTypes() []*NodeType {
-	sql := "select type, name, base, module from " + db.Prefix + "node_type"
+	sql := "select type, name, module from " + db.Prefix + "node_type"
 	list, err := db.DbMap.Select(NodeType{}, sql)
 	util.CheckErrFatal(err, sql)
 	return copyOutNodeType(list)
@@ -141,32 +140,32 @@ func copyOutNodeType(rows []interface{}) []*NodeType {
 }
 
 type JoinedNodeDataBody struct {
-	Nid          int32
-	Vid          int32
-	Type         string
-	Title        string
-	Published    bool // column=status
-	Created      int64
-	Changed      int64
-	Comment      int8
-	Promote      bool
-	Sticky       bool
-	Bundle       string
-	Deleted      bool
-	RevisionId   int32
-	Delta        int32
-	BodyValue    string
-	BodySummary  string
-	BodyFormat   string
+	Nid       int32
+	Vid       int32
+	Type      string
+	Title     string
+	Published bool // column=status
+	Created   int64
+	Changed   int64
+	Comment   int8
+	Promote   bool
+	Sticky    bool
+	//Bundle      string
+	//Deleted     bool
+	//RevisionId  int32
+	//Delta       int32
+	BodyValue   string
+	BodySummary string
+	BodyFormat  string
 }
 
 func (db Database) JoinedNodeFields(offset, count int) []*JoinedNodeDataBody {
 	sql := `select
-	    Nid, Vid, Type, Title, status as Published, Created, Changed, Comment,
-	    Promote, Sticky, Bundle, Deleted, Revision_Id as RevisionId,
-	    Delta, Body_Value as BodyValue, Body_Summary as BodySummary, Body_Format as BodyFormat
-	    from %snode inner join %sfield_data_body on %snode.nid = %sfield_data_body.entity_id limit %d,%d`
-	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, db.Prefix, db.Prefix, offset, count)
+	    n.Nid, n.Vid, n.Type, n.Title, n.status as Published, n.Created, n.Changed, n.Comment,
+	    n.Promote, n.Sticky, nr.Body as BodyValue, nr.Teaser as BodySummary, nr.Format as BodyFormat
+	    from %snode n inner join %snode_revisions nr on n.nid = nr.nid 
+	      and n.vid = nr.vid limit %d,%d`
+	s2 := fmt.Sprintf(sql, db.Prefix, db.Prefix, offset, count)
 	list, err := db.DbMap.Select(JoinedNodeDataBody{}, s2)
 	util.CheckErrFatal(err, s2)
 	return copyOutJoinedNodeDataBody(list)
@@ -193,7 +192,7 @@ type UrlAlias struct {
 }
 
 func (db Database) GetUrlAlias(nid int32) string {
-	sql := `select * from %surl_alias where source = ?`
+	sql := `select pid, src as Source, dst as Alias, language  from %surl_alias where src = ?`
 	s2 := fmt.Sprintf(sql, db.Prefix)
 	source := fmt.Sprintf("node/%d", nid)
 	list, err := db.DbMap.Select(UrlAlias{}, s2, source)
