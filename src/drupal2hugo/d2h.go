@@ -44,6 +44,7 @@ var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
 var pass = flag.String("pass", "", "Drupal password (you will be prompted for the password if this is absent)")
 var host = flag.String("host", "localhost", "Mysql host")
+var emvideoField = flag.String("emvideoField", "", "name of CCK field that holds emvideo data.")
 
 //var dir = flag.String("dir", "", "Run in directory")
 //var force = flag.Bool("f", false, "Force overwriting existing files")
@@ -85,6 +86,11 @@ func main() {
 
 	// username:password@protocol(address)/dbname?param=value
 	db := model.Connect(*driver, *user+":"+*pass+"@tcp("+*host+")/"+*dbName, *prefix, *verbose)
+	cckFieldTypes, err := db.CCKFields()
+	if err != nil && *emvideoField != "" {
+		util.Fatal("Unable to retrieve CCK Field metadata: %s", err.Error())
+	}
+
 	allBookPagesAsMap := make(map[int32]*model.BookPage) //db.AllBookPagesAsMap()
 
 	//	fmt.Println("\nnode types:")
@@ -108,6 +114,21 @@ func main() {
 			alias := db.GetUrlAlias(node.Nid)
 			terms := db.JoinedTaxonomyTerms(node.Nid)
 			menus := db.JoinedMenusForPath(fmt.Sprintf("node/%d", node.Nid))
+			emvideos := make([]model.Emvideo, 0, 10)
+			if *emvideoField != "" {
+				cckData, err := db.CCKDataForNode(node, cckFieldTypes[node.Type])
+				if err != nil {
+					util.Fatal("Unable to get CCK field data for node: %s", err.Error())
+				}
+				for _, cckFieldType := range cckFieldTypes[node.Type] {
+					if cckFieldType.Name == *emvideoField {
+						video, err := model.EmvideoForNodeField(cckFieldType, cckData)
+						if err == nil {
+							emvideos = append(emvideos, *video)
+						}
+					}
+				}
+			}
 			//			hasMenuOrBook := false
 			fmt.Printf("node/%d %s %s\n", node.Nid, alias, node.Title)
 			if bookPage, exists := allBookPagesAsMap[node.Nid]; exists {
@@ -124,7 +145,7 @@ func main() {
 			//			if !hasMenuOrBook {
 			//				fmt.Printf("  --\n")
 			//			}
-			processNode(node, alias, terms, menus)
+			processNode(node, alias, terms, menus, emvideos)
 		}
 		offset += len(nodes)
 		nodes = db.JoinedNodeFields(offset, 10)
@@ -145,7 +166,7 @@ func processVocabs(db model.Database) {
 	}
 }
 
-func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu) {
+func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.JoinedTaxonomyTerm, menus []*model.JoinedMenu, emvideos []model.Emvideo) {
 	fileName := fmt.Sprintf("content/%s.md", alias)
 	dir := path.Dir(fileName)
 	if *verbose {
@@ -158,16 +179,16 @@ func processNode(node *model.JoinedNodeDataBody, alias string, terms []*model.Jo
 	util.CheckErrFatal(err, "mkdir", dir)
 
 	tags := flattenTaxonomies(terms)
-	writeFile(fileName, node, alias, tags, menus)
+	writeFile(fileName, node, alias, tags, menus, emvideos)
 }
 
-func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu) {
+func writeFile(fileName string, node *model.JoinedNodeDataBody, alias string, tags []string, menus []*model.JoinedMenu, emvideos []model.Emvideo) {
 	file, err := os.Create(fileName)
 	util.CheckErrFatal(err, "create", fileName)
 
 	w := bufio.NewWriter(file)
 	writeFrontMatter(w, node, alias, tags, menus)
-	writeContent(w, node)
+	writeContent(w, node, emvideos)
 	w.Flush()
 	file.Close()
 }
@@ -198,7 +219,7 @@ func writeFrontMatter(w io.Writer, node *model.JoinedNodeDataBody, alias string,
 	}
 }
 
-func writeContent(w io.Writer, node *model.JoinedNodeDataBody) {
+func writeContent(w io.Writer, node *model.JoinedNodeDataBody, emvideos []model.Emvideo) {
 	if node.BodySummary != "" {
 		fmt.Fprintf(w, "\n# Summary:\n")
 		for _, line := range strings.Split(node.BodySummary, "\n") {
@@ -212,6 +233,9 @@ func writeContent(w io.Writer, node *model.JoinedNodeDataBody) {
 		body = body[len(node.BodySummary):]
 		fmt.Fprintln(w, node.BodySummary)
 		fmt.Fprintln(w, "<!--more-->")
+	}
+	for _, emvideo := range emvideos {
+		fmt.Fprintf(w, "{{< %s %s >}}", emvideo.Provider, emvideo.VideoId)
 	}
 	fmt.Fprintln(w, body)
 }

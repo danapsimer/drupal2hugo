@@ -25,10 +25,10 @@
 package model
 
 import (
-	"github.com/rickb777/gorp"
 	"database/sql"
 	"drupal2hugo/util"
 	"errors"
+	"github.com/rickb777/gorp"
 	"log"
 	"os"
 )
@@ -37,7 +37,8 @@ import (
 const parameters = ""
 
 type Database struct {
-	DbMap *gorp.DbMap
+	Db     *sql.DB
+	DbMap  *gorp.DbMap
 	Prefix string
 }
 
@@ -50,14 +51,14 @@ func Connect(driver, connection, prefix string, verbose bool) Database {
 
 	database := &gorp.DbMap{Db: db, Dialect: chooseDialect(driver)}
 	controlTrace(verbose, database)
-	return Database{database, prefix}
+	return Database{db, database, prefix}
 }
 
 func chooseDialect(driver string) gorp.Dialect {
 	switch driver {
 	case "mysql": // already initialised
 		return gorp.MySQLDialect{"InnoDB", "UTF8"}
-	case "sqlite":
+	case "sqlite3":
 		return gorp.SqliteDialect{}
 	case "postgres":
 		return gorp.PostgresDialect{}
@@ -75,4 +76,3 @@ func controlTrace(trace bool, DbMap *gorp.DbMap) {
 		DbMap.TraceOff()
 	}
 }
-
