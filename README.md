@@ -7,7 +7,7 @@ This fork has changes that do two things:
 ```
 #!
 
-{{ <provider> <videoId> }}
+{{< <provider> <videoId> >}}
 ```
 
 # Drupal2Hugo
