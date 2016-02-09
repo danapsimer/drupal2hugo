@@ -26,8 +26,8 @@ package main
 
 import (
 	"bufio"
-	"drupal2hugo/model"
-	"drupal2hugo/util"
+	"github.com/fale/drupal2hugo/model"
+	"github.com/fale/drupal2hugo/util"
 	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
