@@ -26,8 +26,8 @@ package main
 
 import (
 	"bufio"
-	"drupal2hugo/model"
-	"drupal2hugo/util"
+	model "github.com/fale/drupal2hugo/model"
+	util "github.com/fale/drupal2hugo/util"
 	"flag"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
@@ -57,9 +57,7 @@ var version = flag.Bool("V", false, "Version information")
 func main() {
 	flag.Parse()
 	if *version {
-		fmt.Fprintf(os.Stderr, "Version %s\n", util.Version)
-		fmt.Fprintf(os.Stderr, "Date %s rev %s branch %s\n", util.BuildDate, util.HgTip, util.HgBranch)
-		fmt.Fprintf(os.Stderr, "From %s\n", util.HgPath)
+		fmt.Fprintf(os.Stderr, "Version 0.1\n")
 		os.Exit(0)
 	}
 

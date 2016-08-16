@@ -3,7 +3,7 @@ This fork has changes that do two things:
 
 1. Make the drupal DB reading routines work with a Drupal 6 schema.
 2. Add the ability to specify an "emvideoField" option that will extract any emvideo type CCK field data an generate a shortcode usage after the Summary like so:
-
+3. Make it build nicely with **go get**
 ```
 #!
 
@@ -36,10 +36,7 @@ from source, which is quite easy.
 
 Of course, start by installing Go, [setting up paths](http://golang.org/doc/code.html), etc. Then:
 
-    hg clone https://rickb777@bitbucket.org/rickb777/drupal2hugo
-    cd drupal2hugo
-    ./get-current-deps.sh
-    ./build.sh
+    go get github.com/fale/drupal2hugo
 
 There should be a new binary for your computer architecture called `bin/drupal2hugo`.
 
@@ -65,5 +62,3 @@ export. At the moment, you have to fix these manually.
 ## Licence
 
 MIT Licence.
-
-[![Build Status](https://drone.io/bitbucket.org/rickb777/drupal2hugo/status.png)](https://drone.io/bitbucket.org/rickb777/drupal2hugo/latest)

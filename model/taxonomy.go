@@ -1,7 +1,7 @@
 package model
 
 import (
-	"drupal2hugo/util"
+	"github.com/fale/drupal2hugo/util"
 	"fmt"
 )
 

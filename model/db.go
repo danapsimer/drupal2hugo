@@ -26,7 +26,7 @@ package model
 
 import (
 	"database/sql"
-	"drupal2hugo/util"
+	"github.com/fale/drupal2hugo/util"
 	"errors"
 	"github.com/rickb777/gorp"
 	"log"
