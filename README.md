@@ -3,12 +3,13 @@ This fork has changes that do two things:
 
 1. Make the drupal DB reading routines work with a Drupal 6 schema.
 2. Add the ability to specify an "emvideoField" option that will extract any emvideo type CCK field data an generate a shortcode usage after the Summary like so:
-3. Make it build nicely with **go get**
 ```
 #!
 
 {{< <provider> <videoId> >}}
 ```
+3. Make it build nicely with **go get**
+
 
 # Drupal2Hugo
 
