@@ -1,3 +1,10 @@
+# Notice
+This is a fork of https://bitbucket.org/rickb777/drupal2hugo
+
+There have been a few folks who have forked this repo and that is fine but I just want credit to go where it belongs.  Also, this tool, IMHO, requires customization for most Drupal sites because it does not take into account the additional pieces that modules add to the data model.  Chances are you are using some modules like CCK, for example, and depending on the types of fields you are using, this tool may require some customization.
+
+Think of this tool as a starting point for automating your site migration.  I think it would be pretty futile to try to create a one-size-fits-all migration tool.
+
 # Fork Note
 This fork has changes that do two things:
 
