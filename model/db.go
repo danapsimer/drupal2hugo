@@ -71,7 +71,7 @@ func chooseDialect(driver string) gorp.Dialect {
 func controlTrace(trace bool, DbMap *gorp.DbMap) {
 	if trace {
 		dbTraceWriter := util.ConstructSomeLogWriter(traceLog, os.Stdout)
-		DbMap.TraceOn("", log.New(dbTraceWriter, "gorptest: ", log.Lmicroseconds))
+		DbMap.TraceOn("", "", log.New(dbTraceWriter, "gorptest: ", log.Lmicroseconds))
 	} else {
 		DbMap.TraceOff()
 	}
