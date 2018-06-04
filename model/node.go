@@ -192,13 +192,13 @@ type UrlAlias struct {
 }
 
 func (db Database) GetUrlAlias(nid int32) string {
-	sql := `select pid, src as Source, dst as Alias, language  from %surl_alias where src = ?`
+	sql := `select pid, src as Source, dst as Alias, language  from %surl_alias where src = ? ORDER BY pid DESC`
 	s2 := fmt.Sprintf(sql, db.Prefix)
 	source := fmt.Sprintf("node/%d", nid)
 	list, err := db.DbMap.Select(UrlAlias{}, s2, source)
 	util.CheckErrFatal(err, s2)
 	if len(list) > 1 {
-		util.Fatal("Expected only one alias for %s but got %d.\n%+v\n", source, len(list), list)
+		util.Stderr("Expected only one alias for %s but got %d.\n%+v\n", source, len(list), list)
 	}
 	if len(list) == 1 {
 		return list[0].(*UrlAlias).Alias
