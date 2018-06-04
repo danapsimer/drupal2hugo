@@ -44,6 +44,7 @@ var prefix = flag.String("prefix", "drp_", "Drupal table prefix")
 var user = flag.String("user", "", "Drupal user (defaults to be the same as the Drupal database name)")
 var pass = flag.String("pass", "", "Drupal password (you will be prompted for the password if this is absent)")
 var host = flag.String("host", "localhost", "Mysql host")
+var port = flag.String("port", "3306", "Mysql server port")
 var emvideoField = flag.String("emvideoField", "", "name of CCK field that holds emvideo data.")
 
 //var dir = flag.String("dir", "", "Run in directory")
@@ -83,7 +84,7 @@ func main() {
 	}
 
 	// username:password@protocol(address)/dbname?param=value
-	db := model.Connect(*driver, *user+":"+*pass+"@tcp("+*host+")/"+*dbName, *prefix, *verbose)
+	db := model.Connect(*driver, *user+":"+*pass+"@tcp("+*host+":"+*port+")/"+*dbName, *prefix, *verbose)
 	cckFieldTypes, err := db.CCKFields()
 	if err != nil && *emvideoField != "" {
 		util.Fatal("Unable to retrieve CCK Field metadata: %s", err.Error())
